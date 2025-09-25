@@ -7,6 +7,7 @@ import { Suspense } from "react"
 import "./globals.css"
 import PillNavWrapper from "@/components/PillNavWrapper"
 import Footer from "@/components/footer"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -28,11 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <body className={`font-sans ${GeistSans.variable} ${orbitron.variable} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 antialiased overflow-x-hidden`}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <PillNavWrapper />
-          <main className="min-h-screen pt-16 md:pt-20">{children}</main>
-          <Footer />
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={<div>Loading...</div>}>
+            <PillNavWrapper />
+            <main className="min-h-screen pt-16 md:pt-20">{children}</main>
+            <Footer />
+          </Suspense>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

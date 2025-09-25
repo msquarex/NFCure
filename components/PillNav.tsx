@@ -38,14 +38,14 @@ const PillNav: React.FC<PillNavProps> = ({
   baseColor = '#fff',
   pillColor = '#060010',
   hoveredPillTextColor = '#060010',
-  pillTextColor,
+  pillTextColor ,
   onMobileMenuClick,
   initialLoadAnimation = true,
   ctaLabel,
   ctaHref,
   variant = 'pill'
 }) => {
-  const resolvedPillTextColor = pillTextColor ?? baseColor;
+  const resolvedPillTextColor = pillTextColor ?? 'rgb(71, 85, 105)';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
@@ -321,7 +321,7 @@ const PillNav: React.FC<PillNavProps> = ({
             <ul role="menubar" className="list-none flex items-center m-0 p-0 h-full gap-2">
               {items.map((item) => {
                 const isActive = activeHref === item.href;
-                const baseClasses = `relative inline-flex items-center justify-center h-full px-3 font-medium text-[15px] tracking-wide text-slate-700 hover:text-slate-900 transition-colors`;
+                const baseClasses = `relative inline-flex items-center justify-center h-full px-3 font-medium text-[15px] tracking-wide text-slate-700 hover:text-white transition-colors duration-300`;
                 const underline = `after:content-[''] after:absolute after:left-3 after:right-3 after:bottom-2 after:h-[2px] after:rounded-full after:bg-blue-600 after:transition-all after:duration-200 ${isActive ? 'after:opacity-100 after:scale-x-100' : 'after:opacity-0 after:scale-x-0 hover:after:opacity-100 hover:after:scale-x-100'}`;
                 return (
                   <li key={item.href} role="none" className="flex h-full">
@@ -357,12 +357,13 @@ const PillNav: React.FC<PillNavProps> = ({
 
                 const pillStyle: React.CSSProperties = {
                   background: 'rgba(255, 255, 255, 0.9)',
-                  color: 'var(--pill-text,rgb(71, 85, 105))',
+                  color: 'var(--pill-text, rgb(71, 85, 105))',
                   paddingLeft: 'var(--pill-pad-x)',
                   paddingRight: 'var(--pill-pad-x)',
                   backdropFilter: 'blur(20px) saturate(180%)',
                   border: '1px solid rgba(255, 255, 255, 0.4)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2)'
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2)',
+                  transition: 'color 0.3s ease'
                 };
 
                 const PillContent = (
@@ -390,7 +391,7 @@ const PillNav: React.FC<PillNavProps> = ({
                       <span
                         className="pill-label-hover absolute left-0 top-0 z-[3] inline-block"
                         style={{
-                          color: 'rgba(255, 255, 255, 1)',
+                          color: 'var(--hover-text, rgba(255, 255, 255, 1))',
                           willChange: 'transform, opacity'
                         }}
                         aria-hidden="true"
@@ -412,7 +413,7 @@ const PillNav: React.FC<PillNavProps> = ({
                 );
 
                 const basePillClasses =
-                  'relative overflow-hidden inline-flex items-center justify-center h-full rounded-full box-border font-semibold text-[16px] leading-[0] uppercase tracking-[0.2px] whitespace-nowrap cursor-pointer px-0 after:content-[""] after:absolute after:left-3 after:right-3 after:bottom-1 after:h-[2px] after:rounded-full after:bg-blue-600 after:opacity-0 after:scale-x-0 hover:after:opacity-100 hover:after:scale-x-100 after:transition-all after:duration-200';
+                  'relative overflow-hidden inline-flex items-center justify-center h-full rounded-full box-border font-semibold text-[16px] leading-[0] uppercase tracking-[0.2px] whitespace-nowrap cursor-pointer px-0 transition-colors duration-300 hover:text-white after:content-[""] after:absolute after:left-3 after:right-3 after:bottom-1 after:h-[2px] after:rounded-full after:bg-blue-600 after:opacity-0 after:scale-x-0 hover:after:opacity-100 hover:after:scale-x-100 after:transition-all after:duration-200';
 
                 return (
                   <li key={item.href} role="none" className="flex h-full">
@@ -632,7 +633,7 @@ const PillNav: React.FC<PillNavProps> = ({
                   <ul role="menubar" className="list-none flex items-center m-0 p-0 h-full gap-2">
                     {items.map((item) => {
                       const isActive = activeHref === item.href;
-                      const baseClasses = `relative inline-flex items-center justify-center h-full px-3 font-medium text-[15px] tracking-wide text-slate-700 hover:text-slate-900 transition-colors`;
+                      const baseClasses = `relative inline-flex items-center justify-center h-full px-3 font-medium text-[15px] tracking-wide text-slate-700 hover:text-white transition-colors duration-300`;
                       const underline = `after:content-[''] after:absolute after:left-3 after:right-3 after:bottom-2 after:h-[2px] after:rounded-full after:bg-blue-600 after:transition-all after:duration-200 ${isActive ? 'after:opacity-100 after:scale-x-100' : 'after:opacity-0 after:scale-x-0 hover:after:opacity-100 hover:after:scale-x-100'}`;
                       return (
                         <li key={item.href} role="none" className="flex h-full">

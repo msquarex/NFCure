@@ -1,14 +1,25 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
+  const { user, loading } = useAuth()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/nfc-tap')
+    }
+  }, [user, loading, router])
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -23,7 +34,7 @@ export default function AuthPage() {
         alert(error.message)
         return
       }
-      window.location.href = '/'
+      router.push('/nfc-tap')
     } finally {
       setIsSubmitting(false)
     }
@@ -49,11 +60,21 @@ export default function AuthPage() {
       }
       if (data.user && !data.session) {
         alert('Check your email to confirm your account.')
+      } else if (data.session) {
+        router.push('/nfc-tap')
       }
-      window.location.href = '/'
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] px-4 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   return (
