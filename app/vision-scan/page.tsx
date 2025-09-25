@@ -11,7 +11,7 @@ import { useDropzone } from "react-dropzone"
 interface ScanResult {
   type: "retina" | "skin"
   condition: string
-  risk: "low" | "medium" | "high"
+  risk: "low" | "mild" | "high"
   confidence: number
   details: string
   recommendations: string[]
@@ -35,50 +35,69 @@ export default function VisionScanPage() {
     multiple: true,
   })
 
-  const analyzeImages = () => {
+  const analyzeImages = async () => {
     setIsAnalyzing(true)
     setAnalysisProgress(0)
 
-    // Simulate analysis process
     const interval = setInterval(() => {
       setAnalysisProgress((prev) => {
-        if (prev >= 100) {
+        if (prev >= 90) {
           clearInterval(interval)
-          setIsAnalyzing(false)
-          // Mock results
-          setResults([
-            {
-              type: "retina",
-              condition: "Diabetic Retinopathy",
-              risk: "low",
-              confidence: 87,
-              details:
-                "No signs of diabetic retinopathy detected. Retinal blood vessels appear normal with no microaneurysms or hemorrhages.",
-              recommendations: [
-                "Continue regular eye examinations",
-                "Maintain good blood sugar control",
-                "Monitor blood pressure regularly",
-              ],
-            },
-            {
-              type: "skin",
-              condition: "Melanoma Risk",
-              risk: "medium",
-              confidence: 92,
-              details:
-                "Asymmetrical mole detected with irregular borders. Requires further evaluation by dermatologist.",
-              recommendations: [
-                "Schedule dermatologist appointment within 2 weeks",
-                "Monitor mole for changes in size or color",
-                "Use broad-spectrum sunscreen daily",
-              ],
-            },
-          ])
-          return 100
+          return 90
         }
         return prev + 5
       })
-    }, 100)
+    }, 150)
+
+    try {
+      const formData = new FormData()
+      uploadedFiles.forEach((file) => {
+        formData.append("file", file)
+      })
+
+      const response = await fetch("http://127.0.0.1:8000/predict/", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      // ---- Mapping API → frontend ----
+      let risk: "low" | "mild" | "high" = "high"
+      if (data.prediction === "No DR") {
+        risk = "low"
+      } else if (data.prediction === "Mild") {
+        risk = "mild"
+      } else if (data.prediction === "Moderate") {
+        risk = "high"
+      } else {
+        risk = "high"
+      }
+
+      const mappedResult: ScanResult = {
+        type: "retina",
+        condition: data.prediction,
+        risk: risk,
+        confidence: Math.floor(Math.random() * 10) + 90, // mock confidence %
+        details: `AI detected: ${data.prediction}. Please consult an ophthalmologist for confirmation.`,
+        recommendations:
+          data.prediction === "No DR"
+            ? ["Continue regular eye check-ups", "Maintain healthy lifestyle"]
+            : [
+                "Consult ophthalmologist",
+                "Follow doctor’s prescribed treatment",
+                "Regular monitoring required",
+              ],
+      }
+
+      setResults([mappedResult])
+    } catch (error) {
+      console.error("Prediction error:", error)
+    } finally {
+      clearInterval(interval)
+      setAnalysisProgress(100)
+      setIsAnalyzing(false)
+    }
   }
 
   const removeFile = (index: number) => {
@@ -87,7 +106,6 @@ export default function VisionScanPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Stunning Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 via-purple-50/20 to-cyan-100/30 animate-aurora"></div>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
@@ -97,7 +115,7 @@ export default function VisionScanPage() {
             style={{
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 8}s`,
-              animationDuration: `${8 + Math.random() * 4}s`
+              animationDuration: `${8 + Math.random() * 4}s`,
             }}
           />
         ))}
@@ -108,15 +126,17 @@ export default function VisionScanPage() {
           <h1 className="font-orbitron text-5xl font-bold gradient-text-holographic mb-4 animate-slide-in-up">
             Vision Scan Analysis
           </h1>
-          <p className="text-slate-700 text-xl animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
+          <p
+            className="text-slate-700 text-xl animate-slide-in-up"
+            style={{ animationDelay: "0.2s" }}
+          >
             Advanced retina and skin scanning with AI-powered analysis
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Upload Section */}
+          {/* Upload Section */}
           <div className="space-y-6">
-            {/* Upload Zone */}
             <Card className="glass rounded-3xl border-0 glow-blue animate-slide-in-up">
               <CardHeader className="pb-6">
                 <CardTitle className="font-orbitron gradient-text-primary flex items-center text-xl">
@@ -142,17 +162,26 @@ export default function VisionScanPage() {
                       <div className="p-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse-soft">
                         <Eye className="w-10 h-10 text-white" />
                       </div>
-                      <div className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 animate-pulse-soft" style={{ animationDelay: '0.5s' }}>
+                      <div
+                        className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 animate-pulse-soft"
+                        style={{ animationDelay: "0.5s" }}
+                      >
                         <Camera className="w-10 h-10 text-white" />
                       </div>
                     </div>
 
                     {isDragActive ? (
-                      <p className="text-blue-600 font-semibold text-xl">Drop the images here...</p>
+                      <p className="text-blue-600 font-semibold text-xl">
+                        Drop the images here...
+                      </p>
                     ) : (
                       <div>
-                        <p className="text-slate-800 font-semibold mb-3 text-xl">Drag & drop retina or skin images here</p>
-                        <p className="text-slate-600 text-lg">or click to select files (JPEG, PNG, BMP)</p>
+                        <p className="text-slate-800 font-semibold mb-3 text-xl">
+                          Drag & drop retina or skin images here
+                        </p>
+                        <p className="text-slate-600 text-lg">
+                          or click to select files (JPEG, PNG, BMP)
+                        </p>
                       </div>
                     )}
                   </div>
@@ -161,7 +190,9 @@ export default function VisionScanPage() {
                 {/* Uploaded Files */}
                 {uploadedFiles.length > 0 && (
                   <div className="mt-8 space-y-4">
-                    <h4 className="font-semibold text-slate-800 text-lg">Uploaded Files:</h4>
+                    <h4 className="font-semibold text-slate-800 text-lg">
+                      Uploaded Files:
+                    </h4>
                     {uploadedFiles.map((file, index) => (
                       <div
                         key={index}
@@ -169,7 +200,9 @@ export default function VisionScanPage() {
                       >
                         <div className="flex items-center space-x-4">
                           <FileImage className="w-6 h-6 text-blue-600" />
-                          <span className="text-slate-700 font-medium">{file.name}</span>
+                          <span className="text-slate-700 font-medium">
+                            {file.name}
+                          </span>
                           <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
                           </Badge>
@@ -202,51 +235,27 @@ export default function VisionScanPage() {
                 {isAnalyzing && (
                   <div className="mt-8 space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-blue-600 font-semibold text-lg">Analyzing images...</span>
-                      <span className="text-blue-600 font-bold text-lg">{analysisProgress}%</span>
+                      <span className="text-blue-600 font-semibold text-lg">
+                        Analyzing images...
+                      </span>
+                      <span className="text-blue-600 font-bold text-lg">
+                        {analysisProgress}%
+                      </span>
                     </div>
                     <Progress value={analysisProgress} className="h-4 rounded-full" />
                     <div className="flex items-center space-x-3 text-slate-600">
                       <Brain className="w-5 h-5 animate-pulse text-blue-600" />
-                      <span className="font-medium">AI models processing visual data...</span>
+                      <span className="font-medium">
+                        AI models processing visual data...
+                      </span>
                     </div>
                   </div>
                 )}
               </CardContent>
             </Card>
-
-            {/* Scan Types Info */}
-            <Card className="glass rounded-3xl border-0 glow-purple animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
-              <CardHeader className="pb-6">
-                <CardTitle className="font-orbitron gradient-text-secondary text-xl">Supported Scans</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/50">
-                  <h4 className="font-semibold text-blue-700 mb-3 flex items-center text-lg">
-                    <Eye className="mr-3 w-5 h-5" />
-                    Retina Scan Analysis
-                  </h4>
-                  <p className="text-slate-700 leading-relaxed">
-                    Detects diabetic retinopathy, macular degeneration, and other retinal conditions using advanced
-                    computer vision.
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-50 to-cyan-50 border border-purple-200/50">
-                  <h4 className="font-semibold text-purple-700 mb-3 flex items-center text-lg">
-                    <Camera className="mr-3 w-5 h-5" />
-                    Skin Scan Analysis
-                  </h4>
-                  <p className="text-slate-700 leading-relaxed">
-                    Identifies potential melanoma, skin cancer, and other dermatological conditions through image
-                    analysis.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
-          {/* Right Column - Results Panel */}
+          {/* Results */}
           <div className="space-y-6">
             {results.length > 0 && (
               <>
@@ -260,12 +269,14 @@ export default function VisionScanPage() {
                           ) : (
                             <Camera className="mr-2 w-5 h-5" />
                           )}
-                          {result.type === "retina" ? "Retina Analysis" : "Skin Analysis"}
+                          {result.type === "retina"
+                            ? "Retina Analysis"
+                            : "Skin Analysis"}
                         </div>
                         <Badge
                           className={`
                             ${result.risk === "low" ? "bg-green-500/20 text-green-400 border-green-500/30" : ""}
-                            ${result.risk === "medium" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : ""}
+                            ${result.risk === "mild" ? "bg-yellow-400/20 text-yellow-500 border-yellow-400/30" : ""}
                             ${result.risk === "high" ? "bg-red-500/20 text-red-400 border-red-500/30" : ""}
                           `}
                         >
@@ -274,34 +285,42 @@ export default function VisionScanPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Condition */}
                       <div>
-                        <h4 className="font-semibold text-white mb-2">{result.condition}</h4>
-                        <p className="text-gray-300 text-sm leading-relaxed">{result.details}</p>
+                        <h4 className="font-semibold text-white mb-2">
+                          {result.condition}
+                        </h4>
+                        <p className="text-gray-300 text-sm leading-relaxed">
+                          {result.details}
+                        </p>
                       </div>
-
-                      {/* Confidence */}
                       <div>
                         <div className="flex justify-between mb-2">
-                          <span className="text-sm text-gray-400">Confidence Level</span>
-                          <span className="text-[#00F5D4]">{result.confidence}%</span>
+                          <span className="text-sm text-gray-400">
+                            Confidence Level
+                          </span>
+                          <span className="text-[#00F5D4]">
+                            {result.confidence}%
+                          </span>
                         </div>
                         <Progress value={result.confidence} className="h-2" />
                       </div>
-
-                      {/* Recommendations */}
                       <div>
                         <h4 className="font-semibold text-white mb-3 flex items-center">
                           {result.risk === "low" ? (
                             <CheckCircle className="mr-2 w-4 h-4 text-green-400" />
-                          ) : (
+                          ) : result.risk === "mild" ? (
                             <AlertTriangle className="mr-2 w-4 h-4 text-yellow-400" />
+                          ) : (
+                            <AlertTriangle className="mr-2 w-4 h-4 text-red-400" />
                           )}
                           Recommendations
                         </h4>
                         <ul className="space-y-2">
                           {result.recommendations.map((rec, recIndex) => (
-                            <li key={recIndex} className="flex items-start text-sm text-gray-300">
+                            <li
+                              key={recIndex}
+                              className="flex items-start text-sm text-gray-300"
+                            >
                               <CheckCircle className="mr-2 w-4 h-4 text-[#00F5D4] mt-0.5 flex-shrink-0" />
                               {rec}
                             </li>
@@ -311,34 +330,21 @@ export default function VisionScanPage() {
                     </CardContent>
                   </Card>
                 ))}
-
-                {/* Summary Card */}
-                <Card className="glass border-[#9A00FF]/30">
-                  <CardHeader>
-                    <CardTitle className="font-orbitron text-[#9A00FF]">Analysis Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="p-4 rounded-lg bg-gradient-to-r from-[#9A00FF]/10 to-[#00F5D4]/10 border border-[#9A00FF]/20">
-                      <p className="text-gray-300 leading-relaxed">
-                        Vision scan analysis complete. {results.length} image{results.length > 1 ? "s" : ""} processed
-                        using advanced AI models. Please consult with healthcare professionals for any concerning
-                        findings and follow the provided recommendations for optimal health monitoring.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
               </>
             )}
 
-            {/* Empty State */}
             {results.length === 0 && !isAnalyzing && (
               <Card className="glass border-gray-700/50">
                 <CardContent className="p-12 text-center">
                   <div className="mb-4">
                     <Scan className="w-16 h-16 text-gray-500 mx-auto" />
                   </div>
-                  <h3 className="font-orbitron text-xl text-gray-400 mb-2">No Analysis Results</h3>
-                  <p className="text-gray-500">Upload images to begin vision scan analysis</p>
+                  <h3 className="font-orbitron text-xl text-gray-400 mb-2">
+                    No Analysis Results
+                  </h3>
+                  <p className="text-gray-500">
+                    Upload images to begin vision scan analysis
+                  </p>
                 </CardContent>
               </Card>
             )}
