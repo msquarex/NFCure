@@ -5,6 +5,7 @@ const path = require('path');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const GroqService = require('./src/services/groqService');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;

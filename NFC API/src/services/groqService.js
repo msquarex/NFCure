@@ -3,7 +3,7 @@ const Groq = require('groq-sdk');
 class GroqService {
     constructor() {
         this.groq = new Groq({
-            apiKey: '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'
+            apiKey: process.env.GROQ_API_KEY
         });
     }
 
