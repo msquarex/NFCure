@@ -16,21 +16,21 @@ export default function HomePage() {
       
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <section className="relative min-h-[80vh] flex items-start justify-center px-4 sm:px-6 lg:px-8 pt-10 md:pt-14">
       <HyperspeedBackground />
         <div className="relative z-10 max-w-6xl mx-auto text-center">
           {/* Main Title with Stunning Effects */}
-          <div className="mb-8 mt-16 animate-slide-in-up">
+          <div className="mb-6 mt-4 animate-slide-in-up">
             <TrueFocusHero />
           </div>
 
           {/* Subtitle with Gradient */}
-          <h2 className="heading-lg mb-6 text-slate-800 font-light tracking-wide animate-slide-in-up gradient-text-primary" style={{ animationDelay: '0.2s' }}>
+          <h2 className="heading-lg mb-4 text-slate-800 font-light tracking-wide animate-slide-in-up gradient-text-primary" style={{ animationDelay: '0.2s' }}>
             Smart NFC-Powered Healthcare
           </h2>
 
           {/* Tagline with Holographic Effect */}
-          <p className="heading-md font-orbitron font-bold mb-12 gradient-text-holographic animate-slide-in-up" style={{ animationDelay: '0.4s' }}>
+          <p className="heading-md font-orbitron font-bold mb-8 gradient-text-holographic animate-slide-in-up" style={{ animationDelay: '0.4s' }}>
           Connect. Analyze. Transform.
           </p>
 
@@ -49,7 +49,7 @@ export default function HomePage() {
           </div>
 
           {/* Floating Action Cards */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
               { icon: Brain, label: "AI Analysis", color: "from-blue-500 to-purple-500" },
               { icon: Eye, label: "Vision Scan", color: "from-purple-500 to-cyan-500" },

@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${orbitron.variable} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 antialiased overflow-x-hidden`}>
         <Suspense fallback={<div>Loading...</div>}>
           <PillNavWrapper />
-          <main className="min-h-screen">{children}</main>
+          <main className="min-h-screen pt-16 md:pt-20">{children}</main>
           <Footer />
         </Suspense>
         <Analytics />
