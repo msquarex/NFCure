@@ -669,10 +669,16 @@
                     </div>
                 </form>
 
-                <button class="btn btn-secondary" onclick="testConnection()">
-                    <i class="fas fa-plug"></i>
-                    Test Connection
-                </button>
+                <div class="row">
+                    <button class="btn btn-secondary" onclick="testConnection()">
+                        <i class="fas fa-plug"></i>
+                        Test Connection
+                    </button>
+                    <button class="btn btn-secondary" onclick="fillSamplePatientId()">
+                        <i class="fas fa-user-md"></i>
+                        Sample Patient ID
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -876,6 +882,20 @@
         }
 
         document.getElementById('scanBtn').addEventListener('click', scanNfc);
+
+        // Fill sample patient ID for testing
+        function fillSamplePatientId() {
+            // You can replace this with actual patient IDs from your database
+            const samplePatientIds = [
+                '123e4567-e89b-12d3-a456-426614174000',
+                '987fcdeb-51a2-43d7-8f9e-123456789abc',
+                '456789ab-cdef-1234-5678-90abcdef1234'
+            ];
+            
+            const randomPatientId = samplePatientIds[Math.floor(Math.random() * samplePatientIds.length)];
+            document.getElementById('nfcText').value = randomPatientId;
+            showStatus('✅ Sample patient ID filled. You can now send it to test the medical report feature.', 'success');
+        }
 
         // Auto-fill device info on page load
         document.addEventListener('DOMContentLoaded', function() {

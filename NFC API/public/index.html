@@ -519,16 +519,143 @@
         }
 
         .report-container {
-            background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 16px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
             white-space: pre-wrap;
             font-family: 'Courier New', monospace;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            animation: fadeIn 0.3s ease-out;
+            color: var(--text-primary);
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .report-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: 2px 0 0 2px;
+        }
+
+        .report-header {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 16px 24px;
+            margin: -24px -24px 20px -24px;
+            border-radius: 16px 16px 0 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-header i {
+            font-size: 1.2rem;
+        }
+
+        .report-content {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .report-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .report-content::-webkit-scrollbar-track {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 3px;
+        }
+
+        .report-content::-webkit-scrollbar-thumb {
+            background: var(--accent-gradient);
+            border-radius: 3px;
+        }
+
+        .loading-report {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .loading-report .loading {
+            margin: 0 auto 16px;
+        }
+
+        .error-report {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Notification System */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+            max-width: 400px;
+            font-weight: 500;
+        }
+
+        .notification.success {
+            border-left: 4px solid #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .notification.error {
+            border-left: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .notification.info {
+            border-left: 4px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
         }
 
         @keyframes fadeIn {
@@ -750,6 +877,211 @@
             to { transform: rotate(360deg); }
         }
 
+        /* AI Summary Styles */
+        .report-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            margin: -24px -24px 0 -24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .tab-btn i {
+            font-size: 1rem;
+        }
+
+        .ai-badge {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .tab-btn.active .ai-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .report-tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .report-tab-content.active {
+            display: block;
+        }
+
+        .ai-summary-container {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .ai-summary-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .ai-summary-header i {
+            font-size: 1.3rem;
+        }
+
+        .ai-summary-sections {
+            padding: 24px;
+        }
+
+        .ai-section {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .ai-section.critical-alerts {
+            border-left: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .ai-section h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-section h4 i {
+            color: #8b5cf6;
+            font-size: 1rem;
+        }
+
+        .ai-section.critical-alerts h4 i {
+            color: #f59e0b;
+        }
+
+        .ai-content {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .ai-content.critical {
+            color: #f59e0b;
+            font-weight: 500;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .ai-summary-footer {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ai-metadata {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .ai-metadata span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-metadata i {
+            color: #8b5cf6;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive AI Summary */
+        @media (max-width: 768px) {
+            .report-tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .tab-btn:last-child {
+                border-bottom: none;
+            }
+
+            .ai-metadata {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .ai-summary-sections {
+                padding: 16px;
+            }
+
+            .ai-section {
+                padding: 16px;
+            }
+        }
+
         /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 8px;
@@ -845,6 +1177,10 @@
                     <i class="fas fa-share-alt"></i>
                     Forwarding Settings
                 </button>
+                <button class="btn btn-secondary" onclick="testServerConnection()">
+                    <i class="fas fa-heartbeat"></i>
+                    Test Server
+                </button>
             </div>
 
             <!-- Forwarding Settings -->
@@ -911,6 +1247,51 @@
         let reportCache = {};
         let dataCount = 0;
 
+        // Test server connection
+        async function testServerConnection() {
+            try {
+                showNotification('Testing server connection...', 'info', 3000);
+                
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification('✅ Server connection successful!', 'success');
+                    console.log('Server test response:', data);
+                } else {
+                    showNotification('❌ Server test failed', 'error');
+                }
+            } catch (error) {
+                console.error('Server test error:', error);
+                showNotification('❌ Server connection failed: ' + error.message, 'error');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info', duration = 5000) {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, duration);
+        }
+
         // Create floating particles
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
@@ -934,6 +1315,7 @@
 
         // Create data item HTML
         function createDataItem(data) {
+            const cached = reportCache[data.id];
             return `
                 <div class="data-item new" id="item-${data.id}">
                     <div class="data-text">${escapeHtml(data.text)}</div>
@@ -947,7 +1329,9 @@
                             Generate Report
                         </button>
                     </div>
-                    <div id="report-${data.id}" class="report-container" style="display:${reportCache[data.id] ? 'block' : 'none'};">${reportCache[data.id] ? escapeHtml(reportCache[data.id]) : ''}</div>
+                    <div id="report-${data.id}" class="report-container" style="display:${cached ? 'block' : 'none'};">
+                        ${cached ? createReportHTML(cached, data.text, data.id) : ''}
+                    </div>
                 </div>
             `;
         }
@@ -957,6 +1341,127 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Create comprehensive report HTML with AI summary
+        function createReportHTML(data, patientId, itemId) {
+            const hasAI = data.aiSummary && !data.aiSummary.error;
+            const aiSummary = data.aiSummary;
+            
+            return `
+                <div class="report-tabs">
+                    <button class="tab-btn active" onclick="switchReportTab('${itemId}', 'medical')">
+                        <i class="fas fa-file-medical"></i>
+                        Medical Report
+                    </button>
+                    ${hasAI ? `
+                        <button class="tab-btn" onclick="switchReportTab('${itemId}', 'ai')">
+                            <i class="fas fa-robot"></i>
+                            AI Summary
+                            <span class="ai-badge">Powered by Groq</span>
+                        </button>
+                    ` : ''}
+                </div>
+                
+                <div id="medical-tab-${itemId}" class="report-tab-content active">
+                    <div class="report-header">
+                        <i class="fas fa-file-medical"></i>
+                        Medical Report - Patient ID: ${escapeHtml(patientId)}
+                    </div>
+                    <div class="report-content">${escapeHtml(data.report)}</div>
+                </div>
+                
+                ${hasAI ? `
+                    <div id="ai-tab-${itemId}" class="report-tab-content">
+                        <div class="ai-summary-container">
+                            <div class="ai-summary-header">
+                                <i class="fas fa-robot"></i>
+                                AI Medical Summary
+                                <span class="ai-badge">Powered by Groq GPT-OSS-20B</span>
+                            </div>
+                            
+                            <div class="ai-summary-sections">
+                                ${aiSummary.summary.executiveSummary ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-clipboard-list"></i> Executive Summary</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.executiveSummary)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.clinicalAssessment ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-stethoscope"></i> Clinical Assessment</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.clinicalAssessment)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.riskFactorAnalysis ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-exclamation-triangle"></i> Risk Factor Analysis</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.riskFactorAnalysis)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.lifestyleImpactAssessment ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-running"></i> Lifestyle Impact Assessment</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.lifestyleImpactAssessment)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.criticalAlerts && aiSummary.summary.criticalAlerts !== 'Section not found in response' ? `
+                                    <div class="ai-section critical-alerts">
+                                        <h4><i class="fas fa-exclamation-circle"></i> Critical Alerts</h4>
+                                        <div class="ai-content critical">${escapeHtml(aiSummary.summary.criticalAlerts)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.treatmentRecommendations ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-prescription-bottle-alt"></i> Treatment Recommendations</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.treatmentRecommendations)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.patientEducationPriorities ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-graduation-cap"></i> Patient Education Priorities</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.patientEducationPriorities)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${aiSummary.summary.followUpConsiderations ? `
+                                    <div class="ai-section">
+                                        <h4><i class="fas fa-calendar-check"></i> Follow-up Considerations</h4>
+                                        <div class="ai-content">${escapeHtml(aiSummary.summary.followUpConsiderations)}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="ai-summary-footer">
+                                <div class="ai-metadata">
+                                    <span><i class="fas fa-clock"></i> Generated: ${new Date(aiSummary.generatedAt).toLocaleString()}</span>
+                                    <span><i class="fas fa-brain"></i> Model: ${aiSummary.metadata.model}</span>
+                                    <span><i class="fas fa-file-alt"></i> ${aiSummary.metadata.wordCount} words</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Switch between report tabs
+        function switchReportTab(itemId, tabType) {
+            // Update tab buttons
+            const tabButtons = document.querySelectorAll(`#report-${itemId} .tab-btn`);
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            const tabContents = document.querySelectorAll(`#report-${itemId} .report-tab-content`);
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabType}-tab-${itemId}`).classList.add('active');
         }
 
         // Fetch and display NFC data
@@ -997,7 +1502,7 @@
                             const el = document.getElementById(`report-${item.id}`);
                             if (el) {
                                 el.style.display = 'block';
-                                el.textContent = cached;
+                                el.innerHTML = createReportHTML(cached, item.text, item.id);
                             }
                         }
                     });
@@ -1029,25 +1534,77 @@
                     alert('Invalid patient ID');
                     return;
                 }
+                
                 const reportEl = document.getElementById(`report-${itemId}`);
                 reportEl.style.display = 'block';
-                reportEl.textContent = 'Generating report...';
+                reportEl.innerHTML = `
+                    <div class="loading-report">
+                        <div class="loading"></div>
+                        <div>Fetching patient data and generating AI summary...</div>
+                    </div>
+                `;
+                
                 const response = await fetch('/api/report', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ patientId })
+                    body: JSON.stringify({ patientId, includeAISummary: true })
                 });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response received:', text);
+                    throw new Error('Server returned non-JSON response');
+                }
+                
                 const data = await response.json();
+                
                 if (!response.ok) {
-                    reportEl.textContent = 'Error: ' + (data.error || 'Failed to generate report');
+                    reportEl.innerHTML = `
+                        <div class="report-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Report Error
+                        </div>
+                        <div class="error-report">
+                            ${data.error || 'Failed to generate report'}
+                        </div>
+                    `;
                     return;
                 }
-                reportEl.textContent = data.report;
-                reportCache[itemId] = data.report;
+                
+                // Display the report with AI summary
+                reportEl.innerHTML = createReportHTML(data, patientId, itemId);
+                
+                reportCache[itemId] = {
+                    report: data.report,
+                    aiSummary: data.aiSummary,
+                    patient: data.patient
+                };
+                
+                // Add success notification
+                const hasAI = data.aiSummary && !data.aiSummary.error;
+                const message = hasAI ? 
+                    '✅ Patient report and AI summary generated successfully!' : 
+                    '✅ Patient report generated successfully! (AI summary unavailable)';
+                showNotification(message, 'success');
+                
             } catch (e) {
                 const reportEl = document.getElementById(`report-${itemId}`);
                 reportEl.style.display = 'block';
-                reportEl.textContent = 'Error generating report.';
+                reportEl.innerHTML = `
+                    <div class="report-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Connection Error
+                    </div>
+                    <div class="error-report">
+                        Failed to connect to database. Please check your connection and try again.
+                    </div>
+                `;
+                console.error('Report generation error:', e);
             }
         }
 

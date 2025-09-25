@@ -3,16 +3,24 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
-const { getSupabaseClient } = require('./src/services/supabaseClient');
+const { createClient } = require('@supabase/supabase-js');
+const GroqService = require('./src/services/groqService');
 
 const app = express();
 const PORT = 3000;
 const FORCE_IP = process.env.FORCE_IP; // Allow manual IP override
 
+// Initialize Supabase client
+const supabaseUrl = 'https://iwimyejbwedasqzmnsnb.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3aW15ZWpid2VkYXNxem1uc25iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MTc1MzIsImV4cCI6MjA3MzQ5MzUzMn0.iZ4oQKXnyGEMjY38Ptpj50mJP5C2AA-Ngn4CN3IVTO4';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Initialize Groq service
+const groqService = new GroqService();
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
 // Store received NFC data
 let nfcData = [];
@@ -151,7 +159,223 @@ app.post('/api/test-forwarding', async (req, res) => {
     }
 });
 
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+});
 
+// Route to fetch patient data and generate report with AI summary
+app.post('/api/report', async (req, res) => {
+    console.log('Report endpoint hit!', req.body);
+    try {
+        const { patientId, includeAISummary = true } = req.body;
+        
+        if (!patientId) {
+            console.log('No patient ID provided');
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        console.log('Fetching patient data for ID:', patientId);
+        
+        // Fetch patient data from Supabase
+        const { data: patient, error } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('patient_id', patientId)
+            .single();
+        
+        if (error) {
+            console.error('Supabase error:', error);
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+        
+        if (!patient) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+        
+        // Generate comprehensive medical report
+        const report = generateMedicalReport(patient);
+        
+        let aiSummary = null;
+        
+        // Generate AI summary if requested
+        if (includeAISummary) {
+            try {
+                console.log('Generating AI summary for patient:', patientId);
+                aiSummary = await groqService.generateMedicalSummary(patient, report);
+                console.log('AI summary generated successfully');
+            } catch (aiError) {
+                console.error('Error generating AI summary:', aiError);
+                // Continue without AI summary rather than failing the entire request
+                aiSummary = {
+                    error: 'AI summary generation failed',
+                    message: aiError.message,
+                    patientId: patientId
+                };
+            }
+        }
+        
+        const response = {
+            success: true,
+            report,
+            patient,
+            aiSummary
+        };
+        
+        res.json(response);
+        
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Route to get quick risk assessment for a patient
+app.post('/api/risk-assessment', async (req, res) => {
+    console.log('Risk assessment endpoint hit!', req.body);
+    try {
+        const { patientId } = req.body;
+        
+        if (!patientId) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        // Fetch patient data from Supabase
+        const { data: patient, error } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('patient_id', patientId)
+            .single();
+        
+        if (error || !patient) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+        
+        // Generate risk assessment
+        const riskAssessment = await groqService.generateRiskAssessment(patient);
+        
+        res.json({ 
+            success: true, 
+            patientId,
+            riskAssessment,
+            generatedAt: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error generating risk assessment:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Function to generate medical report
+function generateMedicalReport(patient) {
+    const formatValue = (value, unit = '') => {
+        if (value === null || value === undefined) return 'Not recorded';
+        return `${value}${unit}`;
+    };
+    
+    const formatBoolean = (value) => {
+        if (value === null || value === undefined) return 'Not recorded';
+        return value ? 'Yes' : 'No';
+    };
+    
+    const formatDate = (date) => {
+        if (!date) return 'Not recorded';
+        return new Date(date).toLocaleDateString();
+    };
+    
+    return `
+═══════════════════════════════════════════════════════════════
+                    PATIENT MEDICAL REPORT
+═══════════════════════════════════════════════════════════════
+
+PATIENT INFORMATION:
+──────────────────
+Patient ID: ${patient.patient_id}
+Name: ${formatValue(patient.name)}
+Age: ${formatValue(patient.age, ' years')}
+Gender: ${patient.gender === 1 ? 'Male' : patient.gender === 0 ? 'Female' : 'Not specified'}
+BMI: ${formatValue(patient.bmi, ' kg/m²')}
+Record Created: ${formatDate(patient.created_at)}
+
+VITAL SIGNS:
+───────────
+Blood Pressure:
+  • Resting BP: ${formatValue(patient.restbp, ' mmHg')}
+  • Systolic BP: ${formatValue(patient.systolic_bp, ' mmHg')}
+  • Diastolic BP: ${formatValue(patient.diastolic_bp, ' mmHg')}
+  • High BP: ${formatBoolean(patient.highbp)}
+
+Heart Rate: ${formatValue(patient.heart_rate, ' bpm')}
+
+LABORATORY VALUES:
+────────────────
+Cholesterol:
+  • Total Cholesterol: ${formatValue(patient.cholesterol, ' mg/dL')}
+  • LDL: ${formatValue(patient.ldl, ' mg/dL')}
+  • HDL: ${formatValue(patient.hdl, ' mg/dL')}
+  • High Cholesterol: ${formatBoolean(patient.highchol)}
+  • Cholesterol Check: ${formatBoolean(patient.cholcheck)}
+
+Triglycerides: ${formatValue(patient.triglycerides, ' mg/dL')}
+Glucose: ${formatValue(patient.glucose, ' mg/dL')}
+
+LIFESTYLE FACTORS:
+────────────────
+Smoking Status: ${formatValue(patient.smoking_status)}
+Smoker: ${formatBoolean(patient.smoker)}
+Alcohol Intake: ${formatValue(patient.alcohol_intake, ' units/week')}
+Heavy Alcohol Consumption: ${formatBoolean(patient.hvyalcoholconsump)}
+
+Physical Activity:
+  • Activity Level: ${formatValue(patient.physical_activity_level)}
+  • Physically Active: ${formatBoolean(patient.physactivity)}
+
+Diet:
+  • Fruits: ${formatValue(patient.fruits, ' servings/day')}
+  • Vegetables: ${formatValue(patient.veggies, ' servings/day')}
+
+Sleep Duration: ${formatValue(patient.sleep_duration, ' hours/night')}
+Salt Intake: ${formatValue(patient.salt_intake, ' g/day')}
+
+HEALTH CONDITIONS:
+────────────────
+Diabetes: ${formatBoolean(patient.diabetes)}
+Stroke: ${formatBoolean(patient.stroke)}
+Heart Disease/Attack: ${formatBoolean(patient.heartdiseaseorattack)}
+Difficulty Walking: ${formatBoolean(patient.diffwalk)}
+
+Family History: ${formatBoolean(patient.family_history)}
+
+MENTAL HEALTH:
+─────────────
+Stress Level: ${formatValue(patient.stress_level, '/10')}
+Mental Health: ${formatValue(patient.menthlth, '/30')}
+Physical Health: ${formatValue(patient.physhlth, '/30')}
+General Health: ${formatValue(patient.genhlth, '/5')}
+
+CARDIAC ASSESSMENT:
+─────────────────
+Chest Pain: ${formatValue(patient.chestpain, '/4')}
+Rest ECG: ${formatValue(patient.restecg, '/2')}
+Exercise Angina: ${formatValue(patient.exang, '/1')}
+ST Depression: ${formatValue(patient.st_depression, ' mm')}
+ST Slope: ${formatValue(patient.st_slope, '/3')}
+Major Vessels: ${formatValue(patient.majorvessels, '/3')}
+Thalassemia: ${formatValue(patient.thalassemia, '/3')}
+
+LIFESTYLE SCORE:
+──────────────
+Overall Lifestyle Score: ${formatValue(patient.lifestylescore, '/100')}
+
+═══════════════════════════════════════════════════════════════
+Report Generated: ${new Date().toLocaleString()}
+═══════════════════════════════════════════════════════════════
+    `.trim();
+}
+
+// Static file serving (must be after API routes)
+app.use(express.static('public'));
 
 // Serve the main page
 app.get('/', (req, res) => {
