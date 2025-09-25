@@ -1,0 +1,34 @@
+{
+  "name": "nfc-data-transfer",
+  "version": "1.0.0",
+  "description": "NFC data transfer system between Android phone and laptop via HTTPS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "generate-certs": "node generate-certs.js",
+    "setup": "npm install && npm run generate-certs",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "nfc",
+    "android",
+    "https",
+    "data-transfer",
+    "web-app"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "selfsigned": "^2.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

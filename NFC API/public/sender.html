@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFCure Sender - Advanced NFC Data Transmission</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --dark-bg: #0a0a0a;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-20px) translateY(-10px); }
+            50% { transform: translateX(20px) translateY(10px); }
+            75% { transform: translateX(-10px) translateY(20px); }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 40px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            animation: rotate 10s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .nfc-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            position: relative;
+            animation: nfcPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes nfcPulse {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 20px rgba(79, 172, 254, 0.5));
+            }
+            50% {
+                transform: scale(1.1);
+                filter: drop-shadow(0 0 40px rgba(0, 242, 254, 0.8));
+            }
+        }
+
+        .nfc-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: url(#nfcGradient);
+        }
+
+        .header h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            animation: textGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes textGlow {
+            0% { filter: drop-shadow(0 0 20px rgba(79, 172, 254, 0.5)); }
+            100% { filter: drop-shadow(0 0 40px rgba(0, 242, 254, 0.8)); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Container */
+        .form-container {
+            padding: 40px;
+        }
+
+        /* Connection Info */
+        .connection-info {
+            background: rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .connection-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .connection-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            color: #4facfe;
+            display: block;
+            margin: 6px 0;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            font-size: 0.9rem;
+        }
+
+        /* NFC Instructions */
+        .nfc-info {
+            background: rgba(240, 147, 251, 0.1);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .nfc-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nfc-info ol {
+            color: var(--text-secondary);
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        .nfc-info li {
+            margin-bottom: 8px;
+        }
+
+        /* Status Message */
+        .status {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideInDown 0.3s ease-out;
+            display: none;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status.success {
+            background: rgba(56, 239, 125, 0.2);
+            color: #38ef7d;
+            border: 1px solid rgba(56, 239, 125, 0.3);
+        }
+
+        .status.error {
+            background: rgba(245, 87, 108, 0.2);
+            color: #f5576c;
+            border: 1px solid rgba(245, 87, 108, 0.3);
+        }
+
+        .status.info {
+            background: rgba(79, 172, 254, 0.2);
+            color: #4facfe;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 56px;
+            margin-bottom: 12px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: rgba(108, 117, 125, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Row Layout */
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .row .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4facfe;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* NFC Scanning Animation */
+        .nfc-scanning {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nfc-scanning::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.3), transparent);
+            animation: scan 2s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4facfe;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden Class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 100%;
+                padding: 10px;
+            }
+
+            .header {
+                padding: 40px 20px 30px;
+            }
+
+            .form-container {
+                padding: 30px 20px;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+
+            .row .btn {
+                width: 100%;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-gradient);
+        }
+
+        /* Pulse Animation for NFC Icon */
+        .nfc-active {
+            animation: nfcActive 1s ease-in-out infinite;
+        }
+
+        @keyframes nfcActive {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 20px rgba(79, 172, 254, 0.5));
+            }
+            50% {
+                transform: scale(1.2);
+                filter: drop-shadow(0 0 40px rgba(0, 242, 254, 1));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
+    
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="glass-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="nfc-icon" id="nfcIcon">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="nfcGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="20" y="20" width="60" height="60" rx="8" fill="url(#nfcGradient)" opacity="0.8"/>
+                        <rect x="30" y="30" width="40" height="40" rx="4" fill="none" stroke="white" stroke-width="2"/>
+                        <circle cx="50" cy="50" r="8" fill="white"/>
+                        <path d="M35 50 L45 50 M55 50 L65 50" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1>NFCure Sender</h1>
+                <p>Advanced NFC Data Transmission Platform</p>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+                <!-- Connection Info -->
+                <div class="connection-info">
+                    <h3><i class="fas fa-link"></i> Target Server</h3>
+                    <code id="targetServerUrl">Loading...</code>
+                </div>
+
+                <!-- NFC Instructions -->
+                <div class="nfc-info">
+                    <h3><i class="fas fa-mobile-alt"></i> NFC Instructions</h3>
+                    <ol>
+                        <li>Open your NFC app on Android</li>
+                        <li>Create a text record with your message</li>
+                        <li>Use this app to send the data to your laptop</li>
+                    </ol>
+                </div>
+
+                <!-- Status Message -->
+                <div id="statusMessage" class="status hidden"></div>
+
+                <!-- Form -->
+                <form id="nfcForm">
+                    <div class="form-group">
+                        <label for="nfcText">NFC Text Data:</label>
+                        <textarea 
+                            id="nfcText" 
+                            placeholder="Enter the text data you want to send from NFC..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deviceInfo">Device Info (Optional):</label>
+                        <input 
+                            type="text" 
+                            id="deviceInfo" 
+                            placeholder="e.g., Samsung Galaxy S21"
+                        >
+                    </div>
+
+                    <div class="row">
+                        <button type="button" class="btn btn-secondary" id="scanBtn">
+                            <i class="fas fa-search"></i>
+                            Scan NFC Tag
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Send NFC Data
+                        </button>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autoSendToggle">
+                        <label for="autoSendToggle">Auto-send on scan</label>
+                    </div>
+                </form>
+
+                <button class="btn btn-secondary" onclick="testConnection()">
+                    <i class="fas fa-plug"></i>
+                    Test Connection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SERVER_URL = window.location.origin;
+        let nfcReader = null;
+        let isScanning = false;
+        
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.classList.remove('hidden');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Test connection to server
+        async function testConnection() {
+            const sendBtn = document.getElementById('sendBtn');
+            const originalText = sendBtn.innerHTML;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<div class="loading"></div> Testing...';
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/nfc-data`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    showStatus('✅ Connection successful! Server is reachable.', 'success');
+                } else {
+                    showStatus('⚠️ Server responded but with an error.', 'error');
+                }
+            } catch (error) {
+                console.error('Connection test failed:', error);
+                showStatus('❌ Connection failed. Make sure the server is running and you accept the SSL certificate.', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText;
+            }
+        }
+
+        // Send NFC data
+        async function sendNfcData(text, deviceInfo) {
+            const sendBtn = document.getElementById('sendBtn');
+            const originalText = sendBtn.innerHTML;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<div class="loading"></div> Sending...';
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/nfc-data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        deviceInfo: deviceInfo || navigator.userAgent,
+                        timestamp: new Date().toISOString()
+                    }),
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showStatus('✅ NFC data sent successfully!', 'success');
+                    
+                    // Clear form
+                    document.getElementById('nfcText').value = '';
+                    document.getElementById('deviceInfo').value = '';
+                } else {
+                    const error = await response.text();
+                    showStatus(`❌ Failed to send data: ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Send failed:', error);
+                showStatus('❌ Failed to send data. Check your connection and SSL certificate.', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText;
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('nfcForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('nfcText').value.trim();
+            const deviceInfo = document.getElementById('deviceInfo').value.trim();
+            
+            if (!text) {
+                showStatus('⚠️ Please enter some text to send.', 'error');
+                return;
+            }
+            
+            sendNfcData(text, deviceInfo);
+        });
+
+        // Web NFC scan logic
+        async function scanNfc() {
+            if (!('NDEFReader' in window)) {
+                showStatus('❌ Web NFC not supported on this device/browser. Use Chrome on Android.', 'error');
+                return;
+            }
+
+            if (isScanning) {
+                return;
+            }
+
+            isScanning = true;
+            const scanBtn = document.getElementById('scanBtn');
+            const nfcIcon = document.getElementById('nfcIcon');
+            const originalText = scanBtn.innerHTML;
+            
+            scanBtn.disabled = true;
+            scanBtn.innerHTML = '<div class="loading"></div> Scanning...';
+            scanBtn.classList.add('nfc-scanning');
+            nfcIcon.classList.add('nfc-active');
+
+            try {
+                nfcReader = new NDEFReader();
+                await nfcReader.scan();
+                showStatus('📡 Hold an NFC tag near the phone...', 'info');
+
+                nfcReader.onreadingerror = () => {
+                    showStatus('⚠️ NFC read error. Try again.', 'error');
+                };
+
+                nfcReader.onreading = (event) => {
+                    try {
+                        const { message } = event;
+                        let textPayload = '';
+                        for (const record of message.records) {
+                            if (record.recordType === 'text') {
+                                const textDecoder = new TextDecoder(record.encoding || 'utf-8');
+                                textPayload += textDecoder.decode(record.data);
+                            } else if (record.recordType === 'url' || record.recordType === 'absolute-url') {
+                                const urlDecoder = new TextDecoder();
+                                textPayload += urlDecoder.decode(record.data);
+                            } else {
+                                const genericDecoder = new TextDecoder();
+                                const decoded = genericDecoder.decode(record.data);
+                                textPayload += decoded;
+                            }
+                            if (textPayload.length > 0) break;
+                        }
+
+                        if (!textPayload) {
+                            showStatus('⚠️ No text payload found on tag.', 'error');
+                            return;
+                        }
+
+                        document.getElementById('nfcText').value = textPayload;
+                        showStatus('✅ Tag read. Data populated.', 'success');
+
+                        if (document.getElementById('autoSendToggle').checked) {
+                            const deviceInfo = document.getElementById('deviceInfo').value.trim();
+                            sendNfcData(textPayload, deviceInfo);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showStatus('❌ Failed to parse NFC data.', 'error');
+                    }
+                };
+            } catch (error) {
+                console.error('NFC scan failed:', error);
+                if (error && (error.name === 'NotAllowedError' || error.name === 'SecurityError')) {
+                    showStatus('❌ NFC permission denied. Ensure Chrome has NFC permission and site is HTTPS.', 'error');
+                } else {
+                    showStatus('❌ Unable to start NFC scan. Your device may not support Web NFC.', 'error');
+                }
+            } finally {
+                isScanning = false;
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = originalText;
+                scanBtn.classList.remove('nfc-scanning');
+                nfcIcon.classList.remove('nfc-active');
+            }
+        }
+
+        document.getElementById('scanBtn').addEventListener('click', scanNfc);
+
+        // Auto-fill device info on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            const deviceInfo = navigator.userAgent;
+            document.getElementById('deviceInfo').value = deviceInfo;
+            
+            // Set the target server URL dynamically
+            document.getElementById('targetServerUrl').textContent = SERVER_URL;
+            
+            // Test connection on page load
+            setTimeout(testConnection, 1000);
+        });
+
+        // Handle NFC data from URL parameters (if opened via NFC)
+        const urlParams = new URLSearchParams(window.location.search);
+        const nfcData = urlParams.get('data');
+        if (nfcData) {
+            document.getElementById('nfcText').value = decodeURIComponent(nfcData);
+        }
+    </script>
+</body>
+</html>
