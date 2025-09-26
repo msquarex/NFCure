@@ -3,7 +3,7 @@ import Hyperspeed from './Hyperspeed';
 
 const HyperspeedBackground = () => {
   return (
-    <div className="absolute inset-0 w-full h-full -top-50">
+    <div className="absolute inset-0 w-full h-full -top-20">
       <Hyperspeed
         effectOptions={{
             onSpeedUp: () => {},
